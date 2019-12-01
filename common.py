@@ -160,3 +160,14 @@ def calculate_gain(df, k, fids):
         total_gain += fid_gain / HEIGHT_SD
     avg_gain = total_gain / len(fids)
     return avg_gain
+
+######
+
+def variance_of_permuted_dot(u, v):
+    n = len(u)
+    assert len(v) == n
+
+    uhat = u - u.mean()
+    vhat = v - v.mean()
+
+    return np.dot(uhat, uhat) * np.dot(vhat, vhat) / (n-1)
