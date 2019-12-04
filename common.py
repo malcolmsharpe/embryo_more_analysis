@@ -97,12 +97,8 @@ def calculate_item_selection_gain_fast(k, x, y):
     n = len(x)
     assert n >= k
 
-    a = np.recarray((n,), dtype=[('x', float), ('y', float)])
-    a['x'] = x
-    a['y'] = y
-    a = np.sort(a, order='x')
-    x = a['x']
-    y = a['y']
+    sorted_idxs = np.argsort(x)
+    y = y[sorted_idxs]
 
     benefit = hockey_stick_pmf(n, k).dot(y)
     cost = np.mean(y)
