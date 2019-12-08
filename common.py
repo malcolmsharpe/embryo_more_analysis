@@ -1,5 +1,7 @@
 import numpy as np
 from scipy.special import binom
+import pandas as pd
+
 import pytest
 
 def calculate_item_selection_gain_brute(k, x, y):
@@ -76,6 +78,13 @@ def calculate_item_selection_gain(k, x, y):
     cost = np.mean(y)
 
     return benefit - cost
+
+def hockey_stick_pmf_unstable(n, k):
+    pmf = np.zeros(shape=(n,), dtype=np.float)
+    for idx in range(n):
+        i = idx+1
+        pmf[idx] = binom(i-1, k-1) / binom(n, k)
+    return pmf
 
 def hockey_stick_pmf(n, k):
     pmf = np.zeros(shape=(n,), dtype=np.float)
@@ -159,6 +168,13 @@ def calculate_gain(df, k, fids):
 
 ######
 
+def variance_of_permuted_dot_simulation(u, v, trials):
+    dots = np.zeros(shape=(trials,), dtype=np.float)
+    for i in range(trials):
+        np.random.shuffle(v)
+        dots[i] = np.dot(u, v)
+    return dots.var()
+
 def variance_of_permuted_dot(u, v):
     n = len(u)
     assert len(v) == n
@@ -167,3 +183,16 @@ def variance_of_permuted_dot(u, v):
     vhat = v - v.mean()
 
     return np.dot(uhat, uhat) * np.dot(vhat, vhat) / (n-1)
+
+######
+
+full_df = pd.read_csv('~/tpc/embryo-pgs-selection/analysis/data/large-fam_height_permitted-subset.csv')
+all_fids = set(full_df['FID'])
+kids_df = full_df.loc[full_df['IID'] < 91]
+
+def fids_for_min_family_size(k):
+    tmp = kids_df.groupby('FID').count()['measured'] >= k
+    return np.array(tmp[tmp].index)
+
+def kids_df_for_min_family_size(k):
+    return kids_df.loc[(kids_df.groupby('FID').count()['measured'][kids_df['FID']] >= k).values]
