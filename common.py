@@ -87,6 +87,8 @@ def hockey_stick_pmf_unstable(n, k):
     return pmf
 
 def hockey_stick_pmf(n, k):
+    assert n >= k
+
     pmf = np.zeros(shape=(n,), dtype=np.float)
 
     pmf[n-1] = k/n
@@ -154,6 +156,9 @@ HEIGHT_SD = 5.6
 def cm_of_sd(phen_sd):
     return HEIGHT_MEAN + HEIGHT_SD * phen_sd
 
+HEIGHT_H2 = 0.8
+HEIGHT_PGS_R2 = 0.243
+
 ######
 
 def calculate_gain(df, k, fids):
@@ -196,3 +201,25 @@ def fids_for_min_family_size(k):
 
 def kids_df_for_min_family_size(k):
     return kids_df.loc[(kids_df.groupby('FID').count()['measured'][kids_df['FID']] >= k).values]
+
+def kids_df_of_fid(fid):
+    return kids_df.loc[kids_df['FID'] == fid]
+
+######
+
+def null_gain_exact_variance(k, fids, fn=variance_of_permuted_dot):
+    ret = 0
+
+    for fid in fids:
+        family_df = kids_df.loc[kids_df['FID'] == fid]
+
+        n = len(family_df)
+
+        u = hockey_stick_pmf(n, k)
+        v = family_df.measured.values / HEIGHT_SD
+
+        fid_gain_var = fn(u, v)
+
+        ret += fid_gain_var
+
+    return ret / (len(fids)**2)
